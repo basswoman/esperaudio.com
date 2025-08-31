@@ -3,12 +3,55 @@ import React, { useState, useEffect } from 'react';
 export default function App() {
   const [scrollY, setScrollY] = useState(0);
   const [setHoveredDemo] = useState(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    project: '',
+    message: '',
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState('');
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const handleInputChange = e => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async e => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus('');
+
+    try {
+      // Option 1: Using Formspree (recommended)
+      const response = await fetch('https://formspree.io/f/YOUR_FORM_ID', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        setSubmitStatus('success');
+        setFormData({ name: '', email: '', project: '', message: '' });
+      } else {
+        setSubmitStatus('error');
+      }
+    } catch (error) {
+      setSubmitStatus('error');
+    }
+
+    setIsSubmitting(false);
+  };
 
   return (
     <div className="font-sans text-gray-100 bg-black min-h-screen overflow-x-hidden">
@@ -337,18 +380,125 @@ export default function App() {
               <span className="text-cyan-300">unforgettable</span>.
             </p>
 
-            <div className="space-y-4">
+            {submitStatus === 'success' && (
+              <div className="mb-6 p-4 bg-green-900/30 border border-green-500/50 rounded-lg text-green-300 text-center">
+                Thanks for reaching out! We'll get back to you soon.
+              </div>
+            )}
+
+            {submitStatus === 'error' && (
+              <div className="mb-6 p-4 bg-red-900/30 border border-red-500/50 rounded-lg text-red-300 text-center">
+                Something went wrong. Please try again or email us directly.
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-gray-300 mb-2"
+                  >
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-3 bg-black/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 transition-colors"
+                    placeholder="Your name"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-300 mb-2"
+                  >
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-3 bg-black/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 transition-colors"
+                    placeholder="your@email.com"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="project"
+                  className="block text-sm font-medium text-gray-300 mb-2"
+                >
+                  Project Type
+                </label>
+                <select
+                  id="project"
+                  name="project"
+                  value={formData.project}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-4 py-3 bg-black/50 border border-gray-700 rounded-lg text-white focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 transition-colors"
+                >
+                  <option value="">Select a service</option>
+                  <option value="ux-sound">UX & Product Sound Design</option>
+                  <option value="film-animation">Film & Animation Sound</option>
+                  <option value="game-interactive">
+                    Game & Interactive Audio
+                  </option>
+                  <option value="custom-music">
+                    Custom Music & Atmospheres
+                  </option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="message"
+                  className="block text-sm font-medium text-gray-300 mb-2"
+                >
+                  Message
+                </label>
+                <textarea
+                  id="message"
+                  name="message"
+                  value={formData.message}
+                  onChange={handleInputChange}
+                  required
+                  rows={5}
+                  className="w-full px-4 py-3 bg-black/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 transition-colors resize-none"
+                  placeholder="Tell us about your project..."
+                />
+              </div>
+
+              <div className="text-center">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="inline-block px-12 py-4 bg-gradient-to-r from-cyan-600 to-purple-600 text-white font-semibold tracking-wide rounded-lg border border-cyan-400/50 hover:shadow-lg hover:shadow-cyan-500/25 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                  {isSubmitting ? 'Sending...' : 'Send Message'}
+                </button>
+              </div>
+            </form>
+
+            {/* <div className="text-sm text-gray-500 mt-8 text-center">
+              Or email us directly at{' '}
               <a
                 href="mailto:hello@esperaudio.com"
-                className="inline-block px-12 py-4 bg-gradient-to-r from-cyan-600 to-purple-600 text-white font-semibold tracking-wide rounded-lg border border-cyan-400/50 hover:shadow-lg hover:shadow-cyan-500/25 transition-all duration-300 transform hover:scale-105"
+                className="text-cyan-400 hover:text-cyan-300 transition-colors"
               >
-                Send Message
-              </a>
-
-              <div className="text-sm text-gray-500 mt-4">
                 hello@esperaudio.com
-              </div>
-            </div>
+              </a>
+            </div> */}
           </div>
         </div>
       </section>
